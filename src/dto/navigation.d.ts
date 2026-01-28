@@ -3,7 +3,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
-  Home: undefined;
+  MainTabs: undefined;
 };
 
 export type LoginScreenNavigationProp = NativeStackNavigationProp<
@@ -11,15 +11,17 @@ export type LoginScreenNavigationProp = NativeStackNavigationProp<
   'Login'
 >;
 
-export type HomeScreenNavigationProp = NativeStackNavigationProp<
+export type MainTabsScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
-  'Home'
+  'MainTabs'
 >;
+ 
 
 export type RegisterScreenRouteProp = NativeStackNavigationProp<
   RootStackParamList,
   'Register'
 >;
+
 
 export type AuthStackParamList = {
   Login: undefined;

@@ -45,7 +45,7 @@ const Login: React.FC = () => {
         position: 'top',
       });
       setTimeout(() => {
-        navigation.navigate('Home');
+        navigation.navigate('MainTabs');
       }, 1000);
     }
   }, [isAuthenticated, navigation]);
