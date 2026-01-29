@@ -24,5 +24,8 @@ export const authApi = {
     return response.data;
   },
 
-
+  getCurrentUser: async (): Promise<any> => {
+    const response = await axiosInstance.get('/users/me');
+    return response.data;
+  },
 };

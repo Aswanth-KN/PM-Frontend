@@ -32,7 +32,24 @@ export const loadAuthState = createAsyncThunk(
     try {
       const authStateString = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
       if (authStateString) {
-        return JSON.parse(authStateString);
+        const authState = JSON.parse(authStateString);
+        
+        // If user exists but doesn't have an id field, try to fetch from API
+        if (authState.user && !authState.user.id && authState.user.token) {
+          try {
+            const { axiosInstance } = require('../../services/axiosConfig');
+            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${authState.user.token}`;
+            const userDetails = await authApi.getCurrentUser();
+            console.log('Loaded user details from API:', userDetails);
+            authState.user.id = userDetails.id || userDetails.user_id || authState.user.email;
+            // Save updated state back to storage
+            await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authState));
+          } catch (error) {
+            console.log('Could not fetch user details on load:', error);
+          }
+        }
+        
+        return authState;
       }
       return null;
     } catch (error) {
@@ -47,11 +64,25 @@ export const loginUser = createAsyncThunk(
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
       const response = await authApi.login(credentials);
-      console.log('Login response:', JSON.stringify(response, null, 2));
+      
+      // Temporarily set token in axiosInstance to make authenticated request
+      const { axiosInstance } = require('../../services/axiosConfig');
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.access_token}`;
+      
+      // Fetch current user details to get the numeric user ID
+      let userId = credentials.email;
+      try {
+        const userDetails = await authApi.getCurrentUser();
+        console.log('User details from API:', userDetails);
+        userId = userDetails.id || userDetails.user_id || credentials.email;
+      } catch (error) {
+        console.log('Could not fetch user details, using email as ID:', error);
+      }
+      
       // Create user object with token from response
       return {
         user: {
-          id: credentials.email,
+          id: userId,
           email: credentials.email,
           name: credentials.email.split('@')[0],
           token: response.access_token,
@@ -100,6 +131,7 @@ const authSlice = createSlice({
       state.error = null;
     },
     setUser: (state, action: PayloadAction<User>) => {
+      console.log('Setting user in auth slice:', action.payload);
       state.user = action.payload;
       state.isAuthenticated = true;
       saveAuthState(action.payload, true);

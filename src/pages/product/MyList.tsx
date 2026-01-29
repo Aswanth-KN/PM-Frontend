@@ -16,7 +16,7 @@ interface Product {
   description: string;
   price: number;
   image_url?: string;
-  userId?: string;
+  owner_id?: string;
 }
 
 const ProductList: React.FC = () => {
